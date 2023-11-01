@@ -1,0 +1,8 @@
+# Mecab 설치
+!apt-get update
+!apt-get install g++ openjdk-8-jdk
+!pip3 install konlpy JPype1-py3
+!bash <(curl -s https://raw.githubusercontent.com/konlpy/konlpy/master/scripts/mecab.sh)
+
+# mecab-python의 버전 오류로 인해 아래 패키지를 설치하면 코랩에서 Mecab을 사용가능
+!pip install mecab-python3
