@@ -47,6 +47,7 @@ class StandardScaler():
         return (data * std) + mean
 
 class TopkMSELoss(torch.nn.Module):
+    #이건 Long-Rang Forecasting에서 사용되는 Loss
     def __init__(self, topk) -> None:
         super().__init__()
         self.topk = topk
@@ -73,6 +74,7 @@ class SingleStepLoss(torch.nn.Module):
             indexes = (labels >= 0)
 
         #mu, sigma는 예측치의 평균과 표준편차
+        #이때 likelihood의 길이는 batch의 길이와 같음
         distribution = torch.distributions.normal.Normal(mu[indexes], sigma[indexes])
         likelihood = -distribution.log_prob(labels[indexes])
 
@@ -82,6 +84,7 @@ class SingleStepLoss(torch.nn.Module):
 
         #top-k loss를 계산하기 위해 topk가 0보다 크면 top-k개의 loss만 반환해줌
         #[0]이 있어서 헷갈릴 수 있는데 k개 반환해주는거 맞음
+        #topk가 0이면 이 부분이 진행되지 않으므로 전체 loss를 반환해줌
         if 0 < topk < len(likelihood):
             likelihood = torch.topk(likelihood, topk)[0]
             se = torch.topk(se, topk)[0]
