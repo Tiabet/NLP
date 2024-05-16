@@ -2,13 +2,10 @@ from torch.functional import align_tensors
 import torch.nn as nn
 
 from torch.nn.modules.linear import Linear
-#from .SubLayers import MultiHeadAttention, PositionwiseFeedForward
-from .SubLayers import GroupedQueryAttention, PositionwiseFeedForward
+from .SubLayers import GroupedQueryAttention, PositionwiseFeedForward, MultiHeadAttention
 import torch
 from .embed import DataEmbedding, CustomEmbedding
 import math
-
-
 
 def get_mask(input_size, window_size, inner_size, device):
     """Get the attention mask of PAM-Naive"""
@@ -167,14 +164,16 @@ def get_k_q(q_k_mask):
 class EncoderLayer(nn.Module):
     """ Compose with two layers """
 
-    def __init__(self, d_model, d_inner, n_head, d_k, d_v, dropout=0.1, normalize_before=True, use_tvm=False, q_k_mask=None, k_q_mask=None):
+    def __init__(self, d_model, d_inner, n_head, d_k, d_v,num_groups=2, dropout=0.1, normalize_before=True, use_tvm=False, q_k_mask=None, k_q_mask=None):
         super(EncoderLayer, self).__init__()
         self.use_tvm = use_tvm
         if use_tvm:
             from .PAM_TVM import PyramidalAttention
             self.slf_attn = PyramidalAttention(n_head, d_model, d_k, d_v, dropout=dropout, normalize_before=normalize_before, q_k_mask=q_k_mask, k_q_mask=k_q_mask)
         else:
-            self.slf_attn = MultiHeadAttention(n_head, d_model, d_k, d_v, dropout=dropout, normalize_before=normalize_before)
+            self.slf_attn = GroupedQueryAttention(n_head, d_model, d_k, d_v, num_groups = num_groups, dropout=dropout, normalize_before=normalize_before)
+            # self.slf_attn = MultiHeadAttention(n_head, d_model, d_k, d_v,  dropout=dropout,
+            #                                       normalize_before=normalize_before)
 
         self.pos_ffn = PositionwiseFeedForward(
             d_model, d_inner, dropout=dropout, normalize_before=normalize_before)
@@ -194,10 +193,12 @@ class EncoderLayer(nn.Module):
 class DecoderLayer(nn.Module):
     """ Compose with two layers """
 
-    def __init__(self, d_model, d_inner, n_head, d_k, d_v, dropout=0.1, normalize_before=True):
+    def __init__(self, d_model, d_inner, n_head, d_k, d_v,num_groups=2, dropout=0.1, normalize_before=True):
         super(DecoderLayer, self).__init__()
+        # self.slf_attn = MultiHeadAttention(
+        #     n_head, d_model, d_k, d_v, dropout=dropout, normalize_before=normalize_before)
         self.slf_attn = GroupedQueryAttention(
-            n_head, d_model, d_k, d_v, dropout=dropout, normalize_before=normalize_before)
+            n_head, d_model, d_k, d_v, dropout=dropout, num_groups=num_groups,normalize_before=normalize_before)
         self.pos_ffn = PositionwiseFeedForward(
             d_model, d_inner, dropout=dropout, normalize_before=normalize_before)
 

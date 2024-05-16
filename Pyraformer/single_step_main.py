@@ -142,17 +142,22 @@ def eval_epoch(model, validation_data, opt):
             """ forward """
             mu_pre, sigma_pre = model.test(sequence, v)
 
+            #MSE라고 되어있긴 한데 실제로는 SE임
             likelihood_losses, mse_losses = criterion(mu_pre, sigma_pre, label)
             ae_losses = AE_loss(mu_pre, label, opt.ignore_zero)
 
             index += 1
 
             total_likelihood += torch.sum(likelihood_losses).detach().double()
+            #SE 전체합
             total_se += torch.sum(mse_losses).detach().double()
             total_ae += torch.sum(ae_losses).detach().double()
             total_label += torch.sum(label).detach().item()
             total_pred_num += len(likelihood_losses)
 
+    #torch.sqrt(total_se/total_pred_num)는 RMSE가 완성됨.
+    #total_label/total_pred_num은 NRMSE가 완성됨.
+    #N은 정규화를 했다는 뜻인데 여기서는 실제값의 평균으로 나눠줌으로써 정규화를 진행했음.
     se = torch.sqrt(total_se / total_pred_num) / (total_label / total_pred_num)
     ae = total_ae / total_label
 
@@ -222,6 +227,7 @@ def evaluate(model, opt, model_save_dir):
     model.load_state_dict(checkpoint)
 
     start = time.time()
+    #MSE로 써있긴 한데 실제로는 NRMSE임
     valid_likelihood, valid_mse, valid_mae = eval_epoch(model, validation_data, opt)
     print('  - (Testing)     loglikelihood: {ll: 8.5f}, '
             'RMSE: {RMSE: 8.5f}, '

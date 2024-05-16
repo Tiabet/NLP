@@ -66,21 +66,30 @@ class SingleStepLoss(torch.nn.Module):
         self.ignore_zero = ignore_zero
 
     def forward(self, mu, sigma, labels, topk=0):
+        #0인 값은 loss 계산할 때 빼기 위해 ignore_zero라는 변수를 사용
         if self.ignore_zero:
             indexes = (labels != 0)
         else:
             indexes = (labels >= 0)
 
+        #mu, sigma는 예측치의 평균과 표준편차
         distribution = torch.distributions.normal.Normal(mu[indexes], sigma[indexes])
         likelihood = -distribution.log_prob(labels[indexes])
 
+        #Squared Error 계산
         diff = labels[indexes] - mu[indexes]
         se = diff * diff
 
+        #top-k loss를 계산하기 위해 topk가 0보다 크면 top-k개의 loss만 반환해줌
+        #[0]이 있어서 헷갈릴 수 있는데 k개 반환해주는거 맞음
         if 0 < topk < len(likelihood):
             likelihood = torch.topk(likelihood, topk)[0]
             se = torch.topk(se, topk)[0]
 
+        #tok-k log-likelihood 와 tok-k SE를 반환해줌
+        #이 부분은 single step main에서 criterion이라는 이름으로 사용되고 있는데
+        #그 과정이 조금 복잡하긴 하지만 아무튼 log-likelihood와 SE를 반환해주는 함수
+        #주의사항 : MSE가 아니라 SE를 반환해주는 것
         return likelihood, se
 
 def AE_loss(mu, labels, ignore_zero):
