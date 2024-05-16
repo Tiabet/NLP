@@ -93,6 +93,7 @@ class SingleStepLoss(torch.nn.Module):
         return likelihood, se
 
 def AE_loss(mu, labels, ignore_zero):
+#이건 평범한 AE 반환
     if ignore_zero:
         indexes = (labels != 0)
     else:

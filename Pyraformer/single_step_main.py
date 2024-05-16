@@ -142,7 +142,7 @@ def eval_epoch(model, validation_data, opt):
             """ forward """
             mu_pre, sigma_pre = model.test(sequence, v)
 
-            #MSE라고 되어있긴 한데 실제로는 SE임
+            #MSE라고 되어있긴 한데 실제로는 NRMSE임
             likelihood_losses, mse_losses = criterion(mu_pre, sigma_pre, label)
             ae_losses = AE_loss(mu_pre, label, opt.ignore_zero)
 
@@ -151,6 +151,7 @@ def eval_epoch(model, validation_data, opt):
             total_likelihood += torch.sum(likelihood_losses).detach().double()
             #SE 전체합
             total_se += torch.sum(mse_losses).detach().double()
+            #AE 전체합
             total_ae += torch.sum(ae_losses).detach().double()
             total_label += torch.sum(label).detach().item()
             total_pred_num += len(likelihood_losses)
@@ -159,6 +160,7 @@ def eval_epoch(model, validation_data, opt):
     #total_label/total_pred_num은 NRMSE가 완성됨.
     #N은 정규화를 했다는 뜻인데 여기서는 실제값의 평균으로 나눠줌으로써 정규화를 진행했음.
     se = torch.sqrt(total_se / total_pred_num) / (total_label / total_pred_num)
+    #MAE 계산
     ae = total_ae / total_label
 
     return total_likelihood / total_pred_num, se, ae
