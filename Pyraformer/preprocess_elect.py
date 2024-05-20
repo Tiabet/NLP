@@ -28,6 +28,9 @@ def prep_data(data, covariates, data_start, train = True):
     time_len = data.shape[0]
     input_size = window_size-stride_size
     windows_per_series = np.full((num_series), (time_len-input_size) // stride_size)
+    # print("time_len", time_len)
+    # print("input_size", input_size)
+    # print("windows_per_series: ", windows_per_series)
     if train: windows_per_series -= (data_start+stride_size-1) // stride_size
     total_windows = np.sum(windows_per_series)
     x_input = np.zeros((total_windows, window_size, 1 + num_covariates + 1), dtype='float32')
@@ -108,9 +111,16 @@ if __name__ == '__main__':
 
     save_path = os.path.join('data', save_name)
 
+    #데이터프레임 처음 들어오면 (140256, 370)
+    #370은 시계열 객체의 길이
     data_frame = pd.read_csv(csv_path, sep=";", index_col=0, parse_dates=True, decimal=',')
+
+    #데이터프레임을 1시간 단위로 샘플링
+    #(32304, 370)으로 압축됨
     data_frame = data_frame.resample('1H',label = 'left',closed = 'right').sum()[train_start:test_end]
+
     data_frame.fillna(0, inplace=True)
+
     covariates = gen_covariates(data_frame[train_start:test_end].index, num_covariates)
     train_data = data_frame[train_start:train_end].values # shape: [seq_length, user_num]
     test_data = data_frame[test_start:test_end].values
@@ -119,3 +129,10 @@ if __name__ == '__main__':
     num_series = data_frame.shape[1] #370
     prep_data(train_data, covariates, data_start)
     prep_data(test_data, covariates, data_start, train=False)
+
+
+    # train_data_elct.npy : 389101,192,6
+    # train_label_elect.npy : 389101,192
+    # train_v_elect.npy : 389101,2
+    # test는 389101 이 아닌 2590
+    # train 길이가 389101이기 때문에 훈련시키면 batch_size 8일때 48673개의 배치가 나오게 됨

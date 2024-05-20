@@ -438,10 +438,11 @@ class electTrainDataset(Dataset):
             label = self.label[index*self.batch_size:].clone()
 
         cov = all_data[:, :, 2:]
-
+        #배치 idx 1개당 24개의 예측치를 생성함
         split_start = len(label[0]) - self.pred_length + 1
         data, label = split(split_start, label, cov, self.pred_length)
-
+        #[8*24,24*8-1,5] for data
+        #[8*24] for label
         return data, label
 
 
