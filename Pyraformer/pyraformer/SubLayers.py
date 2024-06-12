@@ -42,9 +42,7 @@ class GroupedQueryAttention(nn.Module):
         v = self.w_vs(v).view(sz_b, len_v, self.num_groups, self.d_v)
 
         # Transpose for attention dot product: b x n x lq x dv
-        q = q.transpose(1, 2)
-        k = k.transpose(1, 2)
-        v = v.transpose(1, 2)
+        q, k, v = q.transpose(1, 2), k.transpose(1, 2), v.transpose(1, 2)
 
         # Expand keys and values for each head in the group
         k = k.repeat(1, self.group_size, 1, 1)
