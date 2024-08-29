@@ -9,3 +9,5 @@ https://book.interpark.com/product/BookDisplay.do?_method=detail&sc.saNo=001&sc.
 
 -- 딥러닝을 이용한 자연어 처리 입문
 https://wikidocs.net/book/2155
+
+이외 공부 중인 내용
