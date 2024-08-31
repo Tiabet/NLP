@@ -11,3 +11,4 @@ https://book.interpark.com/product/BookDisplay.do?_method=detail&sc.saNo=001&sc.
 https://wikidocs.net/book/2155
 
 이외 공부 중인 내용
+LLM
