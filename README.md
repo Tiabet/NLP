@@ -12,3 +12,5 @@ https://wikidocs.net/book/2155
 
 이외 공부 중인 내용
 LLM
+- RAG
+- RLHF
