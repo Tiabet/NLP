@@ -15,3 +15,4 @@ LLM
 - RAG
 - RLHF
 - CPT
+- Finetuning
